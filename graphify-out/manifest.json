@@ -1,0 +1,21 @@
+{
+  "db.js": 1780233432.9012551,
+  "server.js": 1780233483.590949,
+  "app.js": 1780233480.230952,
+  "routes/albums.js": 1780233472.1275563,
+  "routes/tracks.js": 1780233474.899554,
+  "routes/artists.js": 1780233468.952523,
+  "routes/index.js": 1780233477.63249,
+  "controllers/artists.controller.js": 1780233455.475875,
+  "controllers/albums.controller.js": 1780233460.7631524,
+  "controllers/tracks.controller.js": 1780233466.0945945,
+  "middleware/errorHandler.js": 1780233436.0308454,
+  "models/artists.model.js": 1780233439.7451997,
+  "models/albums.model.js": 1780233444.581577,
+  "models/tracks.model.js": 1780233450.538137,
+  "MY-RULES.md": 1780252431.608111,
+  "research_notes.md": 1780681520.7327309,
+  "CLAUDE.md": 1780689834.4089217,
+  "routes/AGENTS.md": 1780234037.0260127,
+  "controllers/AGENTS.md": 1780233837.353999
+}
