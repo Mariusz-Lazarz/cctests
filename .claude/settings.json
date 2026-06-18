@@ -1,4 +1,9 @@
 {
+  "permissions": {
+    "deny": [
+      "Read(//home/mariusz/projects/claude_tests/scripts/**)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
