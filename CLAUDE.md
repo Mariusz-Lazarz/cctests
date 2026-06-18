@@ -60,6 +60,21 @@ Examples:
 - `jq '.config.database' settings.json`
 - `jq 'keys' unknown.json` # when the structure is unknown
 
+## YAML Tools
+
+Use `yq` (Mike Farah, Go version — jq-compatible syntax) instead of reading YAML files directly:
+
+```bash
+yq '<query>' <file>
+```
+
+Examples:
+
+- `yq '.services.db' docker-compose.yml`
+- `yq '.users[] | select(.id == 42)' config.yaml`
+- `yq 'keys' unknown.yaml` # when the structure is unknown
+- `yq -o=json '.' file.yaml` # convert YAML → JSON
+
 ## graphify
 
 This project has a graphify knowledge graph at graphify-out/.
