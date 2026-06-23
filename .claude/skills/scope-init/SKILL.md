@@ -126,10 +126,16 @@ Each is a hard gate. Revise if any fails.
 
 Single `Write` call to the resolved path.
 
+### Step 6 — Update the subdirectory knowledge index
+
+Run the **Subdirectory knowledge index (always)** section below. The area-doc word-count
+budget (120–250) is unaffected — the index lives in a different file.
+
 Report back:
 - path written
 - body word count
 - reference sibling chosen and why in one sentence
+- subdirectory index: created / entry added / entry updated / skipped (no root file)
 
 ---
 
@@ -166,9 +172,62 @@ that is still accurate.
    result. If the body has grown past 250 words from MISSING additions, trim
    lower-leverage KEEP content rather than dropping the new information.
 
-6. **Report:** path, new body word count, and one line each on what was updated,
-   removed, and added (e.g. *"1 updated (reference sibling renamed), 0 removed,
-   1 added (barrel export wiring step)"*).
+6. **Update the subdirectory knowledge index.** Run the **Subdirectory knowledge index
+   (always)** section below. The area-doc word-count budget (120–250) is unaffected — the
+   index lives in a different file.
+
+7. **Report:** path, new body word count, one line each on what was updated, removed, and
+   added (e.g. *"1 updated (reference sibling renamed), 0 removed, 1 added (barrel export
+   wiring step)"*), and the subdirectory index result (created / entry added / entry updated
+   / skipped).
+
+---
+
+## Subdirectory knowledge index (always)
+
+Run this as the final step of **both** the Create path and the Update path — every time
+`/scope-init` is invoked, regardless of which path ran. It maintains a single index list in
+the repo root that maps each scoped `AGENTS.md` to a few-word summary, so an agent landing at
+the root can see what local docs exist and where.
+
+This edits a **different file** from the area `AGENTS.md` you just wrote, so it does **not**
+count against that file's 120–250 word budget.
+
+1. **Resolve the repo root.** `git rev-parse --show-toplevel`. If not a git repo, walk up
+   from the target directory to the first directory containing `AGENTS.md` or `CLAUDE.md`.
+2. **Pick the root file.** Use `<root>/AGENTS.md` if it exists; otherwise fall back to
+   `<root>/CLAUDE.md`. If **neither** exists, **skip this step** — report "no root rules file
+   — index skipped". Never create a new root file.
+3. **Compute the entry** from the area doc you just wrote:
+   - **Doc** = `@<path-relative-to-root>` (e.g. `@routes/AGENTS.md`). This is the stable
+     upsert key.
+   - **Summary** = the phrase after ` — ` in that doc's `# Area:` heading. If the heading
+     can't be parsed (no ` — `), fall back to the directory name and note it in the report.
+4. **Upsert into the `## Subdirectory Knowledge` list** in the root file. Each entry is one
+   bullet: `- @<doc> — <summary>`.
+   - **No `## Subdirectory Knowledge` section yet** → append one: the caption line, then this
+     bullet.
+   - **Section exists, a bullet with the same Doc path exists** → `Edit` only that bullet's
+     summary text.
+   - **Section exists, no bullet for this doc** → insert a new bullet, keeping bullets sorted
+     by Doc path.
+   - Idempotent: running twice must never duplicate a bullet — match on the `@<path>` Doc.
+
+Touch **only** the `## Subdirectory Knowledge` section. Never reflow or rewrite any other
+content in the root file. This step never overrides the "Target is the repo root → redirect"
+edge case; `/scope-init` still only *targets* sub-directories — the root file is edited
+purely as a side effect.
+
+List format:
+
+```markdown
+## Subdirectory Knowledge
+
+Scoped `AGENTS.md` docs, maintained by `/scope-init`.
+
+- @controllers/AGENTS.md — Express CRUD handlers for REST resources
+- @routes/AGENTS.md — Express routers mapping REST verbs to controller functions
+```
 
 ---
 
