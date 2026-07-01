@@ -12,6 +12,10 @@
           {
             "type": "command",
             "command": "echo \"HOOK FIRED: $(date)\" >> /tmp/hook_fired.log && /home/mariusz/projects/claude_tests/scripts/validate-readonly-sqlite.sh"
+          },
+          {
+            "type": "command",
+            "command": "/home/mariusz/projects/claude_tests/scripts/hooks/claude-prepush-check.sh"
           }
         ]
       },

@@ -131,11 +131,17 @@ Single `Write` call to the resolved path.
 Run the **Subdirectory knowledge index (always)** section below. The area-doc word-count
 budget (120–250) is unaffected — the index lives in a different file.
 
+### Step 7 — Record the directory's shape hash
+
+Run the **Shape hash (always)** section below so the staleness gate knows this
+AGENTS.md is current as of the directory's present contents.
+
 Report back:
 - path written
 - body word count
 - reference sibling chosen and why in one sentence
 - subdirectory index: created / entry added / entry updated / skipped (no root file)
+- shape hash: recorded value for the directory
 
 ---
 
@@ -176,10 +182,40 @@ that is still accurate.
    (always)** section below. The area-doc word-count budget (120–250) is unaffected — the
    index lives in a different file.
 
-7. **Report:** path, new body word count, one line each on what was updated, removed, and
+7. **Record the directory's shape hash.** Run the **Shape hash (always)** section below.
+
+8. **Report:** path, new body word count, one line each on what was updated, removed, and
    added (e.g. *"1 updated (reference sibling renamed), 0 removed, 1 added (barrel export
-   wiring step)"*), and the subdirectory index result (created / entry added / entry updated
-   / skipped).
+   wiring step)"*), the subdirectory index result (created / entry added / entry updated
+   / skipped), and the recorded shape hash.
+
+---
+
+## Shape hash (always)
+
+Run this as the final step of **both** paths, after the area `AGENTS.md` is written. It
+records a hash of the directory's current contents into `.claude/scope-init.lock.json`, so
+the push-time staleness gate (the Claude Code `PreToolUse` hook in `.claude/settings.json`)
+can later tell — for free, without re-reading files — whether the directory has drifted from
+the doc you just wrote.
+
+Single command, run from anywhere in the repo:
+
+```
+scripts/scope-staleness.sh write <target-dir-relative-to-repo-root>
+```
+
+(e.g. `scripts/scope-staleness.sh write controllers`). The script owns the hashing
+algorithm — never compute or edit the hash in the manifest by hand. If the script is
+absent (staleness gate not installed in this repo), skip this step and note
+"shape hash: skipped (no staleness gate)".
+
+**Backfilling existing docs.** To record baselines for area `AGENTS.md` files that
+predate the staleness gate (older docs with no entry in `.claude/scope-init.lock.json`),
+run `scripts/scope-staleness-backfill.sh` from anywhere in the repo. It hashes only the
+dirs that are *missing* a baseline — dirs already recorded are left untouched, so it never
+overwrites (or masks drift on) an existing entry. Pass `--dry-run` to preview which dirs
+would be filled without writing.
 
 ---
 
