@@ -32,7 +32,8 @@ esac
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 [ -x "$ROOT/scripts/scope-staleness.sh" ] || exit 0
 
-# Check the committed/worktree state that's about to be pushed (not the staged index).
+# (1) Blocking: documented dirs that drifted from their AGENTS.md. Exit 2 stops the push
+# and feeds stderr back to the model. Checks the worktree state that's about to be pushed.
 if ! out="$("$ROOT/scripts/scope-staleness.sh" check 2>&1)"; then
   {
     echo "scope-init staleness gate blocked this push:"
@@ -40,5 +41,20 @@ if ! out="$("$ROOT/scripts/scope-staleness.sh" check 2>&1)"; then
     echo "Re-run /scope-init for the listed dir(s), or push with --no-verify to bypass."
   } >&2
   exit 2
+fi
+
+# (2) Non-blocking: undocumented dirs that look worth scoping. A missing doc for a dir
+# nobody asked to document shouldn't hard-block a push, so instead of exit 2 we inject a
+# note as PreToolUse additionalContext (same mechanism the graphify hook uses) — the push
+# proceeds and the model sees the suggestion. `ignore <dir>` silences a false positive.
+cand="$("$ROOT/scripts/scope-staleness.sh" discover 2>/dev/null || true)"
+if [ -n "$cand" ]; then
+  list="$(printf '%s\n' "$cand" | while IFS=$'\t' read -r d cnt ext; do
+    [ -n "$d" ] && printf -- '- %s/ (%s %s files, no AGENTS.md)\n' "$d" "$cnt" "$ext"
+  done)"
+  msg="scope-init discovery: directories that look worth documenting but have no AGENTS.md:
+${list}
+Consider running /scope-init <dir> for each, or 'scripts/scope-staleness.sh ignore <dir>' to stop flagging it."
+  msg="$msg" python3 -c 'import json,os; print(json.dumps({"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":os.environ["msg"]}}))'
 fi
 exit 0
