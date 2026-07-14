@@ -43,18 +43,23 @@ if ! out="$("$ROOT/scripts/scope-staleness.sh" check 2>&1)"; then
   exit 2
 fi
 
-# (2) Non-blocking: undocumented dirs that look worth scoping. A missing doc for a dir
-# nobody asked to document shouldn't hard-block a push, so instead of exit 2 we inject a
-# note as PreToolUse additionalContext (same mechanism the graphify hook uses) — the push
-# proceeds and the model sees the suggestion. `ignore <dir>` silences a false positive.
+# (2) Blocking: undocumented dirs that look worth scoping. A silent note gets ignored
+# (the push just goes through), so instead we block with exit 2 and hand the list to the
+# model with an explicit instruction to ASK THE USER whether to document each one — the
+# decision is the user's, not the agent's. `ignore <dir>` permanently drops a false
+# positive; `--no-verify` bypasses this push once.
 cand="$("$ROOT/scripts/scope-staleness.sh" discover 2>/dev/null || true)"
 if [ -n "$cand" ]; then
-  list="$(printf '%s\n' "$cand" | while IFS=$'\t' read -r d cnt ext; do
-    [ -n "$d" ] && printf -- '- %s/ (%s %s files, no AGENTS.md)\n' "$d" "$cnt" "$ext"
-  done)"
-  msg="scope-init discovery: directories that look worth documenting but have no AGENTS.md:
-${list}
-Consider running /scope-init <dir> for each, or 'scripts/scope-staleness.sh ignore <dir>' to stop flagging it."
-  msg="$msg" python3 -c 'import json,os; print(json.dumps({"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":os.environ["msg"]}}))'
+  {
+    echo "scope-init discovery blocked this push — directories look worth documenting but have no AGENTS.md:"
+    printf '%s\n' "$cand" | while IFS=$'\t' read -r d cnt ext; do
+      [ -n "$d" ] && printf -- '  - %s/ (%s %s files)\n' "$d" "$cnt" "$ext"
+    done
+    echo "ASK THE USER whether to run /scope-init <dir> for each before pushing. Then either:"
+    echo "  - document it:      /scope-init <dir>"
+    echo "  - skip it forever:  scripts/scope-staleness.sh ignore <dir>"
+    echo "  - bypass this push: git push --no-verify"
+  } >&2
+  exit 2
 fi
 exit 0
