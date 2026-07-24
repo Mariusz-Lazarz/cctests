@@ -25,8 +25,6 @@ A request flows `server.js` → `app.js` → `routes/` → `controllers/` → `m
 - `middleware/` — cross-cutting Express middleware (e.g. `errorHandler.js`, which shapes errors as `{ error: { message, status } }`).
 - root (`server.js`, `app.js`, `db.js`) — process entry, app wiring, and the shared better-sqlite3 singleton.
 
-For a directory's local conventions — naming, exports, how to add one more — see that directory's own `AGENTS.md` (listed under **Subdirectory Knowledge** below), not this map.
-
 `airports.json` — static reference data, not served by the API.
 
 ## Development Guidelines
@@ -65,6 +63,22 @@ Examples:
 - `yq 'keys' unknown.yaml` # when the structure is unknown
 - `yq -o=json '.' file.yaml` # convert YAML → JSON
 
+### Documentation Updates
+
+Docstrings, comments, and any files files describe only the current state of the code. When a change makes a piece of documentation outdated, rewrite it — do not append the new decision alongside the old one.
+
+- Never leave changelog-style traces in docs (e.g. "as of task X we switched to Y", "previously did X, now does Y", "Note: updated because..."). If it explains why *now* differs from *before*, it belongs in the commit message or PR description, not in the doc.
+- Before editing a doc block, read it in full and decide whether the whole block still holds together, not just whether the new sentence is true.
+- If a prior edit already left conflicting or stale statements in a doc you're touching, clean them up as part of the change instead of adding a third, newer statement on top.
+
+### Test Changes
+
+When a test fails, the default is to fix the code, not the test. Never edit a test's expectations, assertions, or mocks just to make it pass.
+
+- Only change a test if the underlying requirement or behavior genuinely changed as part of the task — and the code change that caused the failure was intentional, not a bug you introduced.
+- If a test fails because of code you changed on purpose, update the test to match the new intended behavior — that's expected and fine.
+- If a test fails and it's unclear whether the code or the test is wrong, do not guess. Stop and ask the user, explaining what the test expects, what the code actually does, and why the two disagree. Do not silently adjust the test to force a green result.
+
 ## graphify
 
 This project has a graphify knowledge graph at graphify-out/.
@@ -77,6 +91,3 @@ Rules:
 ## Subdirectory Knowledge
 
 Scoped `AGENTS.md` docs, maintained by `/scope-init`.
-
-- @controllers/AGENTS.md — Express CRUD handlers for REST resources
-- @routes/AGENTS.md — Express routers mapping REST verbs to controller functions
