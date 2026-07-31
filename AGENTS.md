@@ -79,6 +79,20 @@ When a test fails, the default is to fix the code, not the test. Never edit a te
 - If a test fails because of code you changed on purpose, update the test to match the new intended behavior — that's expected and fine.
 - If a test fails and it's unclear whether the code or the test is wrong, do not guess. Stop and ask the user, explaining what the test expects, what the code actually does, and why the two disagree. Do not silently adjust the test to force a green result.
 
+### Writing Tests
+
+Tests must exercise behavior, not just confirm the code runs. Before writing assertions for a
+function/endpoint, enumerate the cases that apply to it:
+
+- Happy path (typical valid input)
+- Boundary values (empty string, 0, empty array/list, min/max, off-by-one)
+- Invalid or missing input (null, undefined, wrong type, missing required field)
+- Error paths — assert on the specific error/status, not just "it throws" or "status != 200"
+- State-dependent cases where relevant (already exists, duplicate, concurrent modification, empty DB)
+
+A test file covering only the happy path is incomplete. Avoid assertions that only check
+truthiness or "no exception thrown" — assert on the actual returned value/shape/side effect.
+
 ## graphify
 
 This project has a graphify knowledge graph at graphify-out/.
